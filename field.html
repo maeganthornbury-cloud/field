@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Field Assigned Tickets</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <h1>Service Desk</h1>
+        <nav>
+          <a class="nav-link" href="index.html">Home</a>
+          <a class="nav-link" href="quote.html">Enter New Quote Request</a>
+          <a class="nav-link active" href="field.html">Field Assigned Tickets</a>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <section class="card">
+          <h2>Step 2 — Assigned Tech Login</h2>
+          <div class="inline-row">
+            <label>Tech Name
+              <input id="techLogin" placeholder="Enter your name" />
+            </label>
+            <button id="loadTicketsBtn" type="button">Load Assigned</button>
+          </div>
+          <div id="ticketList"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
