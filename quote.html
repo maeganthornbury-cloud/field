@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Enter New Quote Request</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <h1>Service Desk</h1>
+        <nav>
+          <a class="nav-link" href="index.html">Home</a>
+          <a class="nav-link active" href="quote.html">Enter New Quote Request</a>
+          <a class="nav-link" href="field.html">Field Assigned Tickets</a>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <section class="card">
+          <h2>Step 1 — Enter New Quote Request</h2>
+          <form id="quoteForm" class="grid">
+            <label>Customer Name
+              <input id="customerName" list="customerOptions" required placeholder="Start typing customer..." autocomplete="off" />
+              <datalist id="customerOptions"></datalist>
+            </label>
+            <label>Address
+              <input id="address" required />
+            </label>
+            <label>City
+              <input id="city" required />
+            </label>
+            <label>State
+              <input id="state" required maxlength="2" placeholder="CA" />
+            </label>
+            <label>Zip Code
+              <input id="zipCode" required />
+            </label>
+            <label>Phone #
+              <input id="phone" required placeholder="(555) 123-4567" />
+            </label>
+            <label class="span-2">Description of work needed
+              <textarea id="workDescription" required rows="5" placeholder="Describe shower door service needed..."></textarea>
+            </label>
+            <button type="submit">Save Quote Request</button>
+          </form>
+          <p class="note">Customer suggestions are pulled from KMPG when available. If unavailable, built-in offline customer list is used.</p>
+          <p id="quoteStatus" class="status"></p>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
