@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Shower Door Service Tickets</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Shower Door Service Tickets</h1>
+      <p>Step 1: Office creates/assigns ticket. Step 2: Field tech logs in and measures each side.</p>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>Step 1 — Create & Assign</h2>
+        <form id="orderForm" class="grid">
+          <label>Ticket #<input id="ticketNumber" required placeholder="SD-3001" /></label>
+          <label>Customer<input id="customerName" required placeholder="Job name" /></label>
+          <label>Assigned Tech<input id="assignedTo" required placeholder="e.g. Jose" /></label>
+          <label>Door Side
+            <select id="doorSide"><option value="left">Left</option><option value="right">Right</option></select>
+          </label>
+          <label>Glass Color
+            <select id="glassColor"><option value="chrome">Chrome</option><option value="black">Black</option><option value="brushed nickel">Brushed Nickel</option></select>
+          </label>
+          <label>Door Width (in)<input id="doorWidth" required placeholder="28 1/4" /></label>
+          <label>Panel Width (in)<input id="panelWidth" required placeholder="22 3/4" /></label>
+          <label>Overall Width (in)<input id="overallWidth" required placeholder="51" /></label>
+          <button type="submit">Create + Assign Ticket</button>
+        </form>
+        <p id="orderValidation" class="status"></p>
+      </section>
+
+      <section class="card">
+        <h2>Step 2 — Field Login & Measure</h2>
+        <div class="grid two">
+          <label>Tech Login Name<input id="techLogin" placeholder="Enter assigned name" /></label>
+          <button id="loadAssignedBtn" type="button">Load My Tickets</button>
+        </div>
+        <div id="assignedTickets"></div>
+      </section>
+
+      <section class="card measure-layout">
+        <div class="left-pane">
+          <h2>Measure</h2>
+          <p class="hint">Tap a highlighted edge on the shower drawing to fill <b>Left</b>, <b>Right</b>, <b>Bottom</b>, or <b>Head</b> measurements.</p>
+          <svg id="showerSvg" viewBox="0 0 760 520" aria-label="Shower rendering"></svg>
+        </div>
+        <aside class="right-pane">
+          <h3 id="activeTicketTitle">No ticket selected</h3>
+          <label>Selected edge
+            <input id="selectedEdge" readonly value="None" />
+          </label>
+          <label>Edge Measurement (in)
+            <input id="edgeValue" placeholder='e.g. 75 or 75 1/16' />
+          </label>
+          <button id="saveEdgeBtn" type="button">Save Selected Edge</button>
+
+          <hr />
+
+          <h4>Outage / Head Slope</h4>
+          <label>Side
+            <select id="outageSide"><option value="left">Left</option><option value="right">Right</option></select>
+          </label>
+          <label>Slope Direction
+            <select id="outageDirection"><option value="in">In</option><option value="out">Out</option></select>
+          </label>
+          <label>Outage Amount (in)
+            <input id="outageValue" placeholder="e.g. 1/8" />
+          </label>
+          <button id="applyOutageBtn" type="button">Apply Outage</button>
+
+          <p id="fieldValidation" class="status"></p>
+        </aside>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
