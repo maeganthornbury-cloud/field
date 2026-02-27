@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Shower Door Service Tickets</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Shower Door Service Tickets</h1>
+      <p>Create office orders, send to field, and update live measurements offline or online.</p>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>New Office Order</h2>
+        <form id="orderForm">
+          <div class="grid">
+            <label>
+              Ticket #
+              <input id="ticketNumber" required placeholder="e.g. SD-2044" />
+            </label>
+            <label>
+              Customer
+              <input id="customerName" required placeholder="Customer name" />
+            </label>
+            <label>
+              Shower Type
+              <select id="showerType">
+                <option value="door-panel">Door + Panel</option>
+              </select>
+            </label>
+            <label>
+              Glass Color
+              <select id="glassColor">
+                <option value="chrome">Chrome</option>
+                <option value="black">Black</option>
+                <option value="brushed nickel">Brushed Nickel</option>
+              </select>
+            </label>
+            <label>
+              Door Side
+              <select id="doorSide">
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </label>
+            <label>
+              Door Width (in)
+              <input id="doorWidth" required placeholder="e.g. 28 1/4" />
+            </label>
+            <label>
+              Panel Width (in)
+              <input id="panelWidth" required placeholder="e.g. 22 3/4" />
+            </label>
+            <label>
+              Overall Width (in)
+              <input id="overallWidth" required placeholder="e.g. 51" />
+            </label>
+          </div>
+
+          <fieldset>
+            <legend>Outages</legend>
+            <div id="outageList" class="outage-list"></div>
+            <button type="button" id="addOutageBtn">+ Add Outage</button>
+          </fieldset>
+
+          <div id="validation" role="status"></div>
+          <button type="submit">Send Order to Field</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Field Tickets</h2>
+        <div id="ticketList" class="ticket-list"></div>
+      </section>
+
+      <section class="card preview">
+        <h2>Live Shower Rendering</h2>
+        <svg id="showerSvg" viewBox="0 0 660 320" aria-label="Shower rendering"></svg>
+        <p class="note">Diagram updates as measurements, color, side, and outages change.</p>
+      </section>
+    </main>
+
+    <template id="outageTemplate">
+      <div class="outage-row">
+        <select class="outage-side">
+          <option value="left">Left Side</option>
+          <option value="right">Right Side</option>
+        </select>
+        <select class="outage-direction">
+          <option value="in">In</option>
+          <option value="out">Out</option>
+        </select>
+        <input class="outage-value" placeholder="e.g. 1/4" />
+        <button type="button" class="remove-outage">Remove</button>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
