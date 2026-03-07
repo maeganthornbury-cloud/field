@@ -12,6 +12,7 @@
     <header>
       <h1>Goalie Save Tracker</h1>
       <p>Track saves and goals by game for Club, JV, and Varsity seasons.</p>
+      <button id="toggleSeasonViewBtn" type="button" class="secondary-btn">Show Season View</button>
     </header>
 
     <main>
@@ -47,6 +48,16 @@
               Goals Allowed
               <input id="goalsAllowed" type="number" min="0" required placeholder="0" />
             </label>
+            <label>
+              PK Saves
+              <input id="pkSaves" type="number" min="0" required placeholder="0" />
+            </label>
+          </div>
+
+          <div class="quick-buttons">
+            <button type="button" data-inc="saves">+1 Save</button>
+            <button type="button" data-inc="goalsAllowed">+1 Goal</button>
+            <button type="button" data-inc="pkSaves">+1 PK Save</button>
           </div>
 
           <label>
@@ -59,7 +70,7 @@
         </form>
       </section>
 
-      <section class="card">
+      <section id="seasonView" class="card hidden">
         <h2>Season View</h2>
         <div class="grid filter-grid">
           <label>
