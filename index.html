@@ -4,101 +4,98 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
-    <title>Shower Door Service Tickets</title>
+    <title>Goalie Save Tracker</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header>
-      <h1>Shower Door Service Tickets</h1>
-      <p>Create office orders, send to field, and update live measurements offline or online.</p>
+      <h1>Goalie Save Tracker</h1>
+      <p>Track saves and goals by game for Club, JV, and Varsity seasons.</p>
+      <button id="toggleSeasonViewBtn" type="button" class="secondary-btn">Show Season View</button>
     </header>
 
     <main>
       <section class="card">
-        <h2>New Office Order</h2>
-        <form id="orderForm">
+        <h2>Add Game</h2>
+        <form id="gameForm" class="stack">
           <div class="grid">
             <label>
-              Ticket #
-              <input id="ticketNumber" required placeholder="e.g. SD-2044" />
+              Date
+              <input id="gameDate" type="date" required />
             </label>
             <label>
-              Customer
-              <input id="customerName" required placeholder="Customer name" />
+              Season
+              <input id="season" type="number" min="2000" max="2100" required />
             </label>
             <label>
-              Shower Type
-              <select id="showerType">
-                <option value="door-panel">Door + Panel</option>
+              Team Level
+              <select id="teamLevel" required>
+                <option value="Club">Club</option>
+                <option value="JV">JV</option>
+                <option value="Varsity">Varsity</option>
               </select>
             </label>
             <label>
-              Glass Color
-              <select id="glassColor">
-                <option value="chrome">Chrome</option>
-                <option value="black">Black</option>
-                <option value="brushed nickel">Brushed Nickel</option>
-              </select>
+              Opponent
+              <input id="opponent" required placeholder="e.g. West High" />
             </label>
             <label>
-              Door Side
-              <select id="doorSide">
-                <option value="left">Left</option>
-                <option value="right">Right</option>
-              </select>
+              Saves
+              <input id="saves" type="number" min="0" required placeholder="0" />
             </label>
             <label>
-              Door Width (in)
-              <input id="doorWidth" required placeholder="e.g. 28 1/4" />
+              Goals Allowed
+              <input id="goalsAllowed" type="number" min="0" required placeholder="0" />
             </label>
             <label>
-              Panel Width (in)
-              <input id="panelWidth" required placeholder="e.g. 22 3/4" />
-            </label>
-            <label>
-              Overall Width (in)
-              <input id="overallWidth" required placeholder="e.g. 51" />
+              PK Saves
+              <input id="pkSaves" type="number" min="0" required placeholder="0" />
             </label>
           </div>
 
-          <fieldset>
-            <legend>Outages</legend>
-            <div id="outageList" class="outage-list"></div>
-            <button type="button" id="addOutageBtn">+ Add Outage</button>
-          </fieldset>
+          <div class="quick-buttons">
+            <button type="button" data-inc="saves">+1 Save</button>
+            <button type="button" data-inc="goalsAllowed">+1 Goal</button>
+            <button type="button" data-inc="pkSaves">+1 PK Save</button>
+          </div>
 
-          <div id="validation" role="status"></div>
-          <button type="submit">Send Order to Field</button>
+          <label>
+            Notes (optional)
+            <textarea id="notes" rows="3" placeholder="Weather, PK saves, etc."></textarea>
+          </label>
+
+          <div id="formStatus" role="status" class="status"></div>
+          <button type="submit">Save Game</button>
         </form>
       </section>
 
-      <section class="card">
-        <h2>Field Tickets</h2>
-        <div id="ticketList" class="ticket-list"></div>
+      <section id="seasonView" class="card hidden">
+        <h2>Season View</h2>
+        <div class="grid filter-grid">
+          <label>
+            Season
+            <select id="seasonFilter"></select>
+          </label>
+          <label>
+            Team Level
+            <select id="levelFilter">
+              <option value="all">All</option>
+              <option value="Club">Club</option>
+              <option value="JV">JV</option>
+              <option value="Varsity">Varsity</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="summary" class="summary"></div>
       </section>
 
-      <section class="card preview">
-        <h2>Live Shower Rendering</h2>
-        <svg id="showerSvg" viewBox="0 0 660 320" aria-label="Shower rendering"></svg>
-        <p class="note">Diagram updates as measurements, color, side, and outages change.</p>
+      <section class="card">
+        <h2>Games</h2>
+        <div id="gameList" class="game-list"></div>
       </section>
     </main>
-
-    <template id="outageTemplate">
-      <div class="outage-row">
-        <select class="outage-side">
-          <option value="left">Left Side</option>
-          <option value="right">Right Side</option>
-        </select>
-        <select class="outage-direction">
-          <option value="in">In</option>
-          <option value="out">Out</option>
-        </select>
-        <input class="outage-value" placeholder="e.g. 1/4" />
-        <button type="button" class="remove-outage">Remove</button>
-      </div>
-    </template>
 
     <script src="app.js"></script>
   </body>
