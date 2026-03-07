@@ -107,10 +107,20 @@ button {
 }
 
 .quick-buttons button {
-  padding: 0.9rem 1.2rem;
-  min-height: 3.2rem;
-  font-size: 1.15rem;
+  padding: 1rem 1.35rem;
+  min-height: 3.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
+}
+
+.quick-buttons .save-btn {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+.quick-buttons .goal-btn {
+  background: #dc2626;
+  border-color: #dc2626;
 }
 
 .status {
