@@ -20,12 +20,35 @@ const refs = {
   toggleSeasonViewBtn: document.getElementById("toggleSeasonViewBtn"),
 };
 
-let games = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 let currentGameId = null;
 let autosaveTimer = null;
 
+function parseStoredJSON(key, fallback) {
+  const raw = localStorage.getItem(key);
+  if (!raw) return fallback;
+
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed ?? fallback;
+  } catch {
+    localStorage.removeItem(key);
+    return fallback;
+  }
+}
+
+let games = parseStoredJSON(STORAGE_KEY, []);
+if (!Array.isArray(games)) {
+  games = [];
+}
+
 function saveGames() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+}
+
+function clearAutosaveTimer() {
+  if (!autosaveTimer) return;
+  clearTimeout(autosaveTimer);
+  autosaveTimer = null;
 }
 
 function saveDraft() {
@@ -60,8 +83,8 @@ function setDefaultValues() {
 }
 
 function restoreDraftOrDefault() {
-  const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
-  if (!draft) {
+  const draft = parseStoredJSON(DRAFT_KEY, null);
+  if (!draft || typeof draft !== "object") {
     setDefaultValues();
     return;
   }
@@ -246,8 +269,11 @@ function autoSaveCurrentGame(showError = false) {
 }
 
 function scheduleAutoSave(showError = false) {
-  if (autosaveTimer) clearTimeout(autosaveTimer);
-  autosaveTimer = setTimeout(() => autoSaveCurrentGame(showError), 250);
+  clearAutosaveTimer();
+  autosaveTimer = setTimeout(() => {
+    autoSaveCurrentGame(showError);
+    autosaveTimer = null;
+  }, 250);
 }
 
 function incrementField(fieldId) {
@@ -255,6 +281,7 @@ function incrementField(fieldId) {
   if (!input) return;
   const nextValue = Number(input.value || "0") + 1;
   input.value = String(nextValue);
+  clearAutosaveTimer();
   autoSaveCurrentGame(true);
 }
 
@@ -278,6 +305,7 @@ refs.form.addEventListener("input", (event) => {
 
 refs.form.addEventListener("submit", (event) => {
   event.preventDefault();
+  clearAutosaveTimer();
   const saved = autoSaveCurrentGame(true);
   if (!saved) return;
 
@@ -307,6 +335,8 @@ refs.gameList.addEventListener("click", (event) => {
   if (id === currentGameId) {
     currentGameId = null;
     clearDraft();
+    clearAutosaveTimer();
+    setDefaultValues();
   }
   saveGames();
   renderAll();
