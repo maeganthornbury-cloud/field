@@ -20,6 +20,7 @@ const refs = {
 };
 
 let games = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+let currentGameId = null;
 
 function saveGames() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
@@ -36,7 +37,7 @@ function setDefaultValues() {
 
 function getFormData() {
   return {
-    id: Date.now(),
+    id: currentGameId || Date.now(),
     gameDate: refs.date.value,
     season: Number(refs.season.value),
     teamLevel: refs.teamLevel.value,
@@ -164,11 +165,39 @@ function renderAll() {
   renderGames(filtered);
 }
 
+function upsertGame(game) {
+  const existingIndex = games.findIndex((entry) => entry.id === game.id);
+  if (existingIndex === -1) {
+    games.unshift(game);
+    return;
+  }
+  games[existingIndex] = game;
+}
+
+function autoSaveCurrentGame() {
+  const game = getFormData();
+  const error = validateGame(game);
+
+  if (error) {
+    refs.status.textContent = `Auto-save waiting: ${error}`;
+    refs.status.className = "status invalid";
+    return;
+  }
+
+  currentGameId = game.id;
+  upsertGame(game);
+  saveGames();
+  refs.status.textContent = "Auto-saved.";
+  refs.status.className = "status valid";
+  renderAll();
+}
+
 function incrementField(fieldId) {
   const input = refs[fieldId];
   if (!input) return;
   const nextValue = Number(input.value || "0") + 1;
   input.value = String(nextValue);
+  autoSaveCurrentGame();
 }
 
 refs.form.addEventListener("click", (event) => {
@@ -181,25 +210,25 @@ refs.form.addEventListener("click", (event) => {
   incrementField(fieldId);
 });
 
+refs.form.addEventListener("input", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+
+  if (target.dataset.inc) return;
+  autoSaveCurrentGame();
+});
+
 refs.form.addEventListener("submit", (event) => {
   event.preventDefault();
-  const game = getFormData();
-  const error = validateGame(game);
+  autoSaveCurrentGame();
 
-  if (error) {
-    refs.status.textContent = error;
-    refs.status.className = "status invalid";
-    return;
-  }
+  if (!currentGameId) return;
 
-  games.unshift(game);
-  saveGames();
   refs.form.reset();
+  currentGameId = null;
   setDefaultValues();
-  refs.teamLevel.value = game.teamLevel;
-  refs.status.textContent = "Game saved.";
+  refs.status.textContent = "Game finalized. Ready for a new game.";
   refs.status.className = "status valid";
-  renderAll();
 });
 
 refs.toggleSeasonViewBtn.addEventListener("click", () => {
@@ -218,6 +247,7 @@ refs.gameList.addEventListener("click", (event) => {
   if (!id) return;
 
   games = games.filter((game) => game.id !== id);
+  if (id === currentGameId) currentGameId = null;
   saveGames();
   renderAll();
 });
