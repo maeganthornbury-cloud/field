@@ -1,4 +1,5 @@
 const STORAGE_KEY = "goalie-games-v1";
+const DRAFT_KEY = "goalie-draft-v1";
 
 const refs = {
   form: document.getElementById("gameForm"),
@@ -21,18 +22,59 @@ const refs = {
 
 let games = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 let currentGameId = null;
+let autosaveTimer = null;
 
 function saveGames() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+}
+
+function saveDraft() {
+  const draft = {
+    id: currentGameId,
+    gameDate: refs.date.value,
+    season: refs.season.value,
+    teamLevel: refs.teamLevel.value,
+    opponent: refs.opponent.value,
+    saves: refs.saves.value,
+    goalsAllowed: refs.goalsAllowed.value,
+    pkSaves: refs.pkSaves.value,
+    notes: refs.notes.value,
+  };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
 }
 
 function setDefaultValues() {
   const today = new Date();
   refs.date.value = today.toISOString().split("T")[0];
   refs.season.value = String(today.getFullYear());
+  refs.teamLevel.value = "Club";
   refs.saves.value = "0";
   refs.goalsAllowed.value = "0";
   refs.pkSaves.value = "0";
+  refs.opponent.value = "";
+  refs.notes.value = "";
+}
+
+function restoreDraftOrDefault() {
+  const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+  if (!draft) {
+    setDefaultValues();
+    return;
+  }
+
+  currentGameId = Number(draft.id) || null;
+  refs.date.value = draft.gameDate || "";
+  refs.season.value = draft.season || "";
+  refs.teamLevel.value = draft.teamLevel || "Club";
+  refs.opponent.value = draft.opponent || "";
+  refs.saves.value = draft.saves || "0";
+  refs.goalsAllowed.value = draft.goalsAllowed || "0";
+  refs.pkSaves.value = draft.pkSaves || "0";
+  refs.notes.value = draft.notes || "";
 }
 
 function getFormData() {
@@ -174,22 +216,38 @@ function upsertGame(game) {
   games[existingIndex] = game;
 }
 
-function autoSaveCurrentGame() {
+function setStatus(message, type) {
+  refs.status.textContent = message;
+  refs.status.className = `status ${type}`;
+}
+
+function autoSaveCurrentGame(showError = false) {
+  saveDraft();
+
   const game = getFormData();
   const error = validateGame(game);
 
   if (error) {
-    refs.status.textContent = `Auto-save waiting: ${error}`;
-    refs.status.className = "status invalid";
-    return;
+    if (showError) {
+      setStatus(`Auto-save waiting: ${error}`, "invalid");
+    } else {
+      setStatus("Editing draft…", "pending");
+    }
+    return false;
   }
 
   currentGameId = game.id;
   upsertGame(game);
   saveGames();
-  refs.status.textContent = "Auto-saved.";
-  refs.status.className = "status valid";
+  saveDraft();
+  setStatus("Auto-saved.", "valid");
   renderAll();
+  return true;
+}
+
+function scheduleAutoSave(showError = false) {
+  if (autosaveTimer) clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => autoSaveCurrentGame(showError), 250);
 }
 
 function incrementField(fieldId) {
@@ -197,7 +255,7 @@ function incrementField(fieldId) {
   if (!input) return;
   const nextValue = Number(input.value || "0") + 1;
   input.value = String(nextValue);
-  autoSaveCurrentGame();
+  autoSaveCurrentGame(true);
 }
 
 refs.form.addEventListener("click", (event) => {
@@ -215,20 +273,19 @@ refs.form.addEventListener("input", (event) => {
   if (!(target instanceof HTMLElement)) return;
 
   if (target.dataset.inc) return;
-  autoSaveCurrentGame();
+  scheduleAutoSave(false);
 });
 
 refs.form.addEventListener("submit", (event) => {
   event.preventDefault();
-  autoSaveCurrentGame();
-
-  if (!currentGameId) return;
+  const saved = autoSaveCurrentGame(true);
+  if (!saved) return;
 
   refs.form.reset();
   currentGameId = null;
+  clearDraft();
   setDefaultValues();
-  refs.status.textContent = "Game finalized. Ready for a new game.";
-  refs.status.className = "status valid";
+  setStatus("Game finalized. Ready for a new game.", "valid");
 });
 
 refs.toggleSeasonViewBtn.addEventListener("click", () => {
@@ -247,7 +304,10 @@ refs.gameList.addEventListener("click", (event) => {
   if (!id) return;
 
   games = games.filter((game) => game.id !== id);
-  if (id === currentGameId) currentGameId = null;
+  if (id === currentGameId) {
+    currentGameId = null;
+    clearDraft();
+  }
   saveGames();
   renderAll();
 });
@@ -261,5 +321,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-setDefaultValues();
+restoreDraftOrDefault();
 renderAll();
+autoSaveCurrentGame(false);
