@@ -1,5 +1,5 @@
-const CACHE_NAME = "goalie-tracker-cache-v5";
-const STATIC_ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./manifest.webmanifest"];
+const CACHE_NAME = "goalie-tracker-cache-v6";
+const STATIC_ASSETS = ["./", "./index.html", "./styles.css?v=6", "./app.js?v=6", "./manifest.webmanifest?v=6"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)));

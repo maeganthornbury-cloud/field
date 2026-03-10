@@ -353,7 +353,7 @@ if ("serviceWorker" in navigator) {
     });
 
     navigator.serviceWorker
-      .register("./sw.js", { updateViaCache: "none" })
+      .register("./sw.js?v=6", { updateViaCache: "none" })
       .then((registration) => {
         registration.update();
 
