@@ -1,5 +1,5 @@
-const CACHE_NAME = "goalie-tracker-cache-v6";
-const STATIC_ASSETS = ["./", "./index.html", "./styles.css?v=6", "./app.js?v=6", "./manifest.webmanifest?v=6"];
+const CACHE_NAME = "goalie-tracker-cache-v10";
+const STATIC_ASSETS = ["./", "./index.html", "./styles.css?v=10", "./app.js?v=10", "./manifest.webmanifest?v=10"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)));
@@ -19,48 +19,65 @@ self.addEventListener("message", (event) => {
   }
 });
 
-function isSameOrigin(url) {
-  return url.origin === self.location.origin;
+function normalizePath(url) {
+  return `${url.pathname}${url.search}`;
 }
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  const url = new URL(request.url);
+  if (request.method !== "GET") return;
 
-  if (!isSameOrigin(url)) return;
+  let url;
+  try {
+    url = new URL(request.url);
+  } catch {
+    return;
+  }
 
-  // Network-first for documents so UI updates show immediately.
+  if (url.origin !== self.location.origin) return;
+
+  const path = normalizePath(url);
+
   if (request.mode === "navigate" || request.destination === "document") {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          if (response && response.ok) {
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+          }
           return response;
         })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match("./index.html"))),
+        .catch(async () => {
+          const cachedDoc = await caches.match(request);
+          if (cachedDoc) return cachedDoc;
+          return caches.match("./index.html");
+        }),
     );
     return;
   }
 
-  // Stale-while-revalidate for local static assets.
-  if (["script", "style", "manifest"].includes(request.destination) || STATIC_ASSETS.includes(url.pathname.replace(/^\//, "") ? `./${url.pathname.replace(/^\//, "")}` : "./")) {
+  const isVersionedStatic = STATIC_ASSETS.some((asset) => {
+    const normalized = asset.startsWith("./") ? asset.slice(1) : asset;
+    return normalized === path;
+  });
+
+  if (isVersionedStatic || ["script", "style", "manifest", "image", "font"].includes(request.destination)) {
     event.respondWith(
       caches.match(request).then((cached) => {
         const networkFetch = fetch(request)
           .then((response) => {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            if (response && response.ok) {
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+            }
             return response;
           })
           .catch(() => cached);
+
         return cached || networkFetch;
       }),
     );
     return;
   }
 
-  event.respondWith(
-    fetch(request).catch(() => caches.match(request)),
-  );
+  event.respondWith(fetch(request).catch(() => caches.match(request)));
 });

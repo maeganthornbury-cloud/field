@@ -180,6 +180,19 @@ button {
   gap: 0.5rem;
 }
 
+
+.card-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.edit-btn {
+  background: #2563eb;
+  border-color: #2563eb;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
 .delete-btn {
   background: #dc2626;
   border-color: #dc2626;

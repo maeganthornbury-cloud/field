@@ -100,6 +100,21 @@ function restoreDraftOrDefault() {
   refs.notes.value = draft.notes || "";
 }
 
+function loadGameIntoForm(game) {
+  currentGameId = game.id;
+  refs.date.value = game.gameDate;
+  refs.season.value = String(game.season);
+  refs.teamLevel.value = game.teamLevel;
+  refs.opponent.value = game.opponent;
+  refs.saves.value = String(game.saves);
+  refs.goalsAllowed.value = String(game.goalsAllowed);
+  refs.pkSaves.value = String(game.pkSaves || 0);
+  refs.notes.value = game.notes || "";
+  saveDraft();
+  setStatus(`Editing ${game.teamLevel} vs ${game.opponent}.`, "pending");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function getFormData() {
   return {
     id: currentGameId || Date.now(),
@@ -209,7 +224,10 @@ function renderGames(filteredGames) {
       <article class="game-card" data-id="${game.id}">
         <div class="card-head">
           <h3>${game.teamLevel} vs ${game.opponent}</h3>
-          <button type="button" class="delete-btn" data-delete="${game.id}">Delete</button>
+          <div class="card-actions">
+            <button type="button" class="edit-btn" data-edit="${game.id}">Edit</button>
+            <button type="button" class="delete-btn" data-delete="${game.id}">Delete</button>
+          </div>
         </div>
         <p><strong>Date:</strong> ${game.gameDate}</p>
         <p><strong>Season:</strong> ${game.season}</p>
@@ -328,15 +346,24 @@ refs.gameList.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
 
-  const id = Number(target.dataset.delete);
-  if (!id) return;
+  const editId = Number(target.dataset.edit);
+  if (editId) {
+    const game = games.find((entry) => entry.id === editId);
+    if (!game) return;
+    loadGameIntoForm(game);
+    return;
+  }
 
-  games = games.filter((game) => game.id !== id);
-  if (id === currentGameId) {
+  const deleteId = Number(target.dataset.delete);
+  if (!deleteId) return;
+
+  games = games.filter((game) => game.id !== deleteId);
+  if (deleteId === currentGameId) {
     currentGameId = null;
     clearDraft();
     clearAutosaveTimer();
     setDefaultValues();
+    setStatus("Edit removed. Ready for a new game.", "pending");
   }
   saveGames();
   renderAll();
@@ -344,33 +371,14 @@ refs.gameList.addEventListener("click", (event) => {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    let refreshing = false;
-
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (refreshing) return;
-      refreshing = true;
-      window.location.reload();
-    });
-
     navigator.serviceWorker
-      .register("./sw.js?v=6", { updateViaCache: "none" })
-      .then((registration) => {
-        registration.update();
-
-        if (registration.waiting) {
-          registration.waiting.postMessage("SKIP_WAITING");
-        }
-
-        registration.addEventListener("updatefound", () => {
-          const worker = registration.installing;
-          if (!worker) return;
-
-          worker.addEventListener("statechange", () => {
-            if (worker.state === "installed" && navigator.serviceWorker.controller) {
-              worker.postMessage("SKIP_WAITING");
-            }
-          });
-        });
+      .getRegistrations()
+      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+      .then(() => {
+        if (!window.caches) return;
+        return caches
+          .keys()
+          .then((keys) => Promise.all(keys.filter((key) => key.startsWith("goalie-tracker-cache-")).map((key) => caches.delete(key))));
       })
       .catch(() => {});
   });
