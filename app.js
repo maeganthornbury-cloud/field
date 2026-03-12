@@ -1,5 +1,6 @@
 const STORAGE_KEY = "goalie-games-v1";
 const DRAFT_KEY = "goalie-draft-v1";
+const API_URL = "/.netlify/functions/games";
 
 const refs = {
   form: document.getElementById("gameForm"),
@@ -22,6 +23,7 @@ const refs = {
 
 let currentGameId = null;
 let autosaveTimer = null;
+let syncTimer = null;
 
 function parseStoredJSON(key, fallback) {
   const raw = localStorage.getItem(key);
@@ -41,8 +43,42 @@ if (!Array.isArray(games)) {
   games = [];
 }
 
+/* ── Server sync ── */
+
+function syncToServer() {
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => {
+    fetch(API_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(games),
+    }).catch(() => {});
+  }, 800);
+}
+
+async function loadGamesFromServer() {
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error("fetch failed");
+    const serverGames = await res.json();
+
+    if (Array.isArray(serverGames) && serverGames.length > 0) {
+      games = serverGames;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+    } else if (games.length > 0) {
+      syncToServer();
+    }
+  } catch {
+    /* offline or error — keep using localStorage data */
+  }
+  renderAll();
+}
+
+/* ── Local persistence ── */
+
 function saveGames() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(games));
+  syncToServer();
 }
 
 function clearAutosaveTimer() {
@@ -272,7 +308,7 @@ function autoSaveCurrentGame(showError = false) {
     if (showError) {
       setStatus(`Auto-save waiting: ${error}`, "invalid");
     } else {
-      setStatus("Editing draft…", "pending");
+      setStatus("Editing draft\u2026", "pending");
     }
     return false;
   }
@@ -384,6 +420,8 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+/* ── Startup ── */
 restoreDraftOrDefault();
 renderAll();
 autoSaveCurrentGame(false);
+loadGamesFromServer();
